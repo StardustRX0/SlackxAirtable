@@ -55,6 +55,7 @@ public class Secrets {
     public static String getTableChannelsID() {
         return properties.getProperty("table.channelsid");
     }
+
     public static String getTableLogsId() {
         return properties.getProperty("table.logsid");
     }

@@ -15,7 +15,6 @@ import com.airtableapi.AirTableAPI;
 import com.slack.api.methods.SlackApiException;
 
 
-
 public class Main {
 
     private static Scanner sc = new Scanner(System.in);
@@ -28,20 +27,11 @@ public class Main {
     }
 
     public static void showlogo() {
-        /*String logo = "\n  ___  ___  ___  ___  ___.---------------.\n"
-                + ".'\\__\\'\\__\\'\\__\\'\\__\\'\\__,`   .  ____ ___ \\\n"
-                + "|\\/ __\\/ __\\/ __\\/ __\\/ _:\\   |`.  \\  \\___ \\\n"
-                + " \\\\'\\__\\'\\__\\'\\__\\'\\__\\'\\_`.__|\"\"`. \\  \\___ \\\n"
-                + "  \\\\/ __\\/ __\\/ __\\/ __\\/ __:                \\\n"
-                + "   \\\\'\\__\\'\\__\\'\\__\\ \\__\\'\\_;-----------------`\n"
-                + "    \\\\/   \\/   \\/   \\/   \\/ :               tk|\n"
-                + "     \\|______________________;________________|\n";*/
 
         String title = "WELCOME TO SLACK MANAGEMENT PROGRAM!";
         int width = 60;
         String line = "-".repeat(width);
 
-        //System.out.println(logo);
         System.out.println(line);
         System.out.println(centerString(title, width));
         System.out.println(line);
@@ -62,16 +52,16 @@ public class Main {
                     System.out.println("Program ended!");
                     break;
                 case 1:
-                    showChannels();
+                    //showChannels();
                     break;
                 case 2:
-                    showUsers();
+                    //showUsers();
                     break;
                 case 3:
-                    createChannel();
+                    //createChannel();
                     break;
                 case 4:
-                    inviteUser();
+                    //inviteUser();
                     break;
                 case 5:
                     showMenuFetching();
@@ -85,6 +75,37 @@ public class Main {
             System.out.println("Invalid input! Please enter a valid option (0-5).");
             sc.next();
             showMenu();
+        }
+    }
+
+    public static void showMenuFetching() throws IOException, SlackApiException{
+        String menu = "\nPlease select an option:\n\n" + "1. Fetch data from Slack to AirTable\n" + "2. Schedule fetching task";
+        System.out.println(menu);
+        int option = sc.nextInt();
+
+        switch (option) {
+            case 0:
+                showMenu();
+                break;
+            case 1:
+                LocalDateTime submittedTime = LocalDateTime.now();
+                //autoFetching(submittedTime, "Manual sync");
+                System.out.println("Syncing data...");
+                System.out.println("Press Enter key to get back...");
+                System.in.read();
+                showMenu();
+
+                break;
+            case 2:
+                //taskScheduling("Schedule sync");
+                System.out.println("Press Enter key to get back...");
+                System.in.read();
+                showMenu();
+                break;
+            default:
+                System.out.println("Invalid input!");
+                showMenuFetching();
+                break;
         }
     }
 
