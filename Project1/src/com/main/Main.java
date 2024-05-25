@@ -12,8 +12,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.airtableapi.AirTableAPI;
+import com.airtableapi.AirTableAPI;
+import com.slackdatafetching.SlackDataFetching;
 import com.slack.api.methods.SlackApiException;
-
 
 public class Main {
 
@@ -52,10 +53,10 @@ public class Main {
                     System.out.println("Program ended!");
                     break;
                 case 1:
-                    //showChannels();
+                    showChannels();
                     break;
                 case 2:
-                    //showUsers();
+                    showUsers();
                     break;
                 case 3:
                     //createChannel();
@@ -107,6 +108,42 @@ public class Main {
                 showMenuFetching();
                 break;
         }
+    }
+
+
+    public static void autoFetching(final LocalDateTime submittedTime, final String task) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LocalDateTime startedTime = LocalDateTime.now();
+                String status = "SUCCESS";
+                try {
+                    SlackDataFetching.airtableFetching();
+                } catch (Exception e) {
+                    status = "FAILED";
+                    Logger logger = LoggerFactory.getLogger(SlackDataFetching.class);
+                    logger.error("Error occurred during data fetching: " + e.getMessage());
+                }
+                LocalDateTime finishedTime = LocalDateTime.now();
+                AirTableAPI.createLogs(submittedTime, startedTime, finishedTime, status, task);
+            }
+        });
+        thread.setName("DataFetchingThread-" + task);
+        thread.start();
+    }
+
+    public static void showUsers() throws IOException, SlackApiException {
+        SlackDataFetching.printUsers();
+        System.out.println("Press Enter key to get back...");
+        System.in.read();
+        showMenu();
+    }
+
+    public static void showChannels() throws IOException, SlackApiException  {
+        SlackDataFetching.printChannels();
+        System.out.println("Press Enter key to get back...");
+        System.in.read();
+        showMenu();
     }
 
     public static String centerString(String text, int width) {
