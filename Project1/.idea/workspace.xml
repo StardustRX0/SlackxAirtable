@@ -7,8 +7,6 @@
     <list default="true" id="7281f8c3-ced7-4b00-b7fb-29877b68cda1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Credentials/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Credentials/config.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SlackDataFetching.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/com/main/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/main/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,6 +93,7 @@
       <workItem from="1715618444377" duration="1562000" />
       <workItem from="1716617299648" duration="339000" />
       <workItem from="1716617672012" duration="2437000" />
+      <workItem from="1716631553285" duration="768000" />
     </task>
     <servers />
   </component>
