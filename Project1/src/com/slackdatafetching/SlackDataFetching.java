@@ -36,6 +36,7 @@ public class SlackDataFetching {
 
     private SlackDataFetching() {
         throw new IllegalStateException(" Utility class");
+        
     }
     // Slack API credentials
     static String slackToken = Secrets.getSlackBotToken();
@@ -47,92 +48,86 @@ public class SlackDataFetching {
 
         // get list channels from Slack
         List<Conversation> slackChannels = fetchAllChannels(slack, methods);
-        if (slackChannels == null) {
-            throw new IOException("Failed to fetch channels from Slack.");
-        }
         JSONArray slackChannelArray = convertToJSONArray(extractChannelData(slackChannels));
 
         // get list users from Slack
         List<User> slackUsers = fetchUsers(methods);
+        assert slackUsers != null;
         JSONArray slackUserArray = convertToJSONArray(extractUserData(slackUsers));
 
         JSONArray airtableChannelArray = AirTableAPI.listRecords(Secrets.getTableChannelsID());
         JSONArray airtableUserArray = AirTableAPI.listRecords(Secrets.getTableUsersID());
 
-        if (slackChannelArray != null) {
-            JSONObject usersInChannel = fetchChannelsWithUsers(slack, slackChannels);
+        JSONObject usersInChannel = fetchChannelsWithUsers(slack, slackChannels);
 
-            for (int j = 0; j < slackChannelArray.length(); j++) {
-                JSONObject slackChannelObject = slackChannelArray.getJSONObject(j);
-                String channelName = slackChannelObject.getString("name");
-                JSONArray usersField = usersInChannel.getJSONArray(channelName);
-                ArrayList<String> usersIdArray = new ArrayList<>();
+        for (int j = 0; j < slackChannelArray.length(); j++) {
+            JSONObject slackChannelObject = slackChannelArray.getJSONObject(j);
+            String channelName = slackChannelObject.getString("name");
+            JSONArray usersField = usersInChannel.getJSONArray(channelName);
+            ArrayList<String> usersIdArray = new ArrayList<>();
 
-                for (int i = 0; i < usersField.length(); i++) {
-                    String userId = usersField.getString(i);
-                    String existingRecordId = JsonUtils.findIdInAirtableJsonArray(userId, airtableUserArray);
+            for (int i = 0; i < usersField.length(); i++) {
+                String userId = usersField.getString(i);
+                String existingRecordId = JsonUtils.findIdInAirtableJsonArray(userId, airtableUserArray);
 
-                    if (existingRecordId != null) {
-                        usersIdArray.add(existingRecordId);
-                    }
+                if (existingRecordId != null) {
+                    usersIdArray.add(existingRecordId);
                 }
-
-                slackChannelObject.put("Users", usersIdArray);
-                AirTableAPI.createOrUpdateRecord(Secrets.getTableChannelsID(), slackChannelObject, airtableChannelArray);
             }
 
-            for (int j = 0; j < airtableChannelArray.length(); j++) {
-                JSONObject airtableChannelObject = airtableChannelArray.getJSONObject(j);
-                AirTableAPI.checkDeletedRecord(Secrets.getTableChannelsID(), airtableChannelObject, slackChannelArray);
-            }
+            slackChannelObject.put("Users", usersIdArray);
+            AirTableAPI.createOrUpdateRecord(Secrets.getTableChannelsID(), slackChannelObject, airtableChannelArray);
+        }
 
-            for (int i = 0; i < slackUserArray.length(); i++) {
-                JSONObject slackUserObject = slackUserArray.getJSONObject(i);
-                AirTableAPI.createOrUpdateRecord(Secrets.getTableUsersID(), slackUserObject, airtableUserArray);
-            }
+        for (int j = 0; j < airtableChannelArray.length(); j++) {
+            JSONObject airtableChannelObject = airtableChannelArray.getJSONObject(j);
+            AirTableAPI.checkDeletedRecord(Secrets.getTableChannelsID(), airtableChannelObject, slackChannelArray);
+        }
 
-            for (int i = 0; i < airtableUserArray.length(); i++) {
-                JSONObject airtableUserObject = airtableUserArray.getJSONObject(i);
-                AirTableAPI.checkDeletedRecord(Secrets.getTableUsersID(), airtableUserObject, slackUserArray);
-            }
-        } else {
-            throw new IOException("Network Error!");
+        for (int i = 0; i < slackUserArray.length(); i++) {
+            JSONObject slackUserObject = slackUserArray.getJSONObject(i);
+            AirTableAPI.createOrUpdateRecord(Secrets.getTableUsersID(), slackUserObject, airtableUserArray);
+        }
+
+        for (int i = 0; i < airtableUserArray.length(); i++) {
+            JSONObject airtableUserObject = airtableUserArray.getJSONObject(i);
+            AirTableAPI.checkDeletedRecord(Secrets.getTableUsersID(), airtableUserObject, slackUserArray);
         }
     }
 
     public static void printChannels() {
         Slack slack = Slack.getInstance();
+        System.out.println(1);
         MethodsClient methods = slack.methods();
-
+        System.out.println(2);
         List<Conversation> channels = fetchAllChannels(slack, methods);
-        if (channels != null) {
-            String channelsString = convertToString(extractChannelData(channels));
-            JSONArray channelsJSON = new JSONArray(channelsString);
-            System.out.format("%-30s %-20s %-20s %-20s %-10s %-10s %-30s %-50s%n", "Name", "ID", "Creator",
-                    "Create Date", "Privacy", "Status", "Topic", "Description");
-            System.out.println(
-                    "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.println(3);
+        String channelsString = convertToString(extractChannelData(channels));
+        JSONArray channelsJSON = new JSONArray(channelsString);
+        System.out.format("%-30s %-20s %-20s %-20s %-10s %-10s %-30s %-50s%n", "Name", "ID", "Creator",
+                "Create Date", "Privacy", "Status", "Topic", "Description");
+        System.out.println(
+                "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-            // Print the data
-            for (int i = 0; i < channelsJSON.length(); i++) {
-                JSONObject channel = channelsJSON.getJSONObject(i);
-                String name = channel.optString("name", "");
-                String id = channel.optString("id", "");
-                String topic = channel.optString("topic", "");
-                if (topic.length() > 25) {
-                    topic = topic.substring(0, 25) + "...";
-                }
-                String description = channel.optString("description", "");
-                if (description.length() > 50) {
-                    description = description.substring(0, 50) + "...";
-                }
-                String creator = channel.optString("creator", "");
-                String createDate = channel.optString("createDate", "");
-                String privacy = channel.optString("privacy", "");
-                String status = channel.optString("status", "");
-                System.out.format("%-30s %-20s %-20s %-20s %-10s %-10s %-30s %-50s%n", name, id, creator, createDate,
-                        privacy, status, topic, description);
+        // Print the data
+        for (int i = 0; i < channelsJSON.length(); i++) {
+            JSONObject channel = channelsJSON.getJSONObject(i);
+            String name = channel.optString("name", "");
+            String id = channel.optString("id", "");
+            String topic = channel.optString("topic", "");
+            if (topic.length() > 25) {
+                topic = topic.substring(0, 25) + "...";
             }
+            String description = channel.optString("description", "");
+            if (description.length() > 50) {
+                description = description.substring(0, 50) + "...";
+            }
+            String creator = channel.optString("creator", "");
+            String createDate = channel.optString("createDate", "");
+            String privacy = channel.optString("privacy", "");
+            String status = channel.optString("status", "");
+            System.out.format("%-30s %-20s %-20s %-20s %-10s %-10s %-30s %-50s%n", name, id, creator, createDate,
+                    privacy, status, topic, description);
         }
     }
 
@@ -216,11 +211,13 @@ public class SlackDataFetching {
 
         // Merge the results and remove duplicates
         Set<String> channelIds = new HashSet<>();
+        assert userChannels != null;
         for (Conversation channel : userChannels) {
             if (channelIds.add(channel.getId())) {
                 slackChannels.add(channel);
             }
         }
+        assert botChannels != null;
         for (Conversation channel : botChannels) {
             if (channelIds.add(channel.getId())) {
                 slackChannels.add(channel);
@@ -351,44 +348,42 @@ public class SlackDataFetching {
         MethodsClient methods = slack.methods();
         List<Conversation> channels = fetchAllChannels(slack, methods);
 
-        if (channels != null) {
-            JSONObject channelUsersObject = fetchChannelsWithUsers(slack, channels);
-            System.out.println("Channels:");
+        JSONObject channelUsersObject = fetchChannelsWithUsers(slack, channels);
+        System.out.println("Channels:");
 
-            for (Conversation channel : channels) {
-                String channelId = channel.getId();
-                String channelName = channel.getName();
+        for (Conversation channel : channels) {
+            String channelId = channel.getId();
+            String channelName = channel.getName();
 
-                System.out.println("Channel: " + channelName + " (ID: " + channelId + ")");
+            System.out.println("Channel: " + channelName + " (ID: " + channelId + ")");
 
-                if (channelUsersObject.has(channelName)) {
-                    JSONArray memberIds = channelUsersObject.getJSONArray(channelName);
-                    List<User> members = new ArrayList<>();
+            if (channelUsersObject.has(channelName)) {
+                JSONArray memberIds = channelUsersObject.getJSONArray(channelName);
+                List<User> members = new ArrayList<>();
 
-                    for (int i = 0; i < memberIds.length(); i++) {
-                        String memberId = memberIds.getString(i);
-                        UsersInfoResponse userInfoResponse;
-                        try {
-                            userInfoResponse = slack.methods(slackToken)
-                                    .usersInfo(UsersInfoRequest.builder().user(memberId).build());
-                            if (userInfoResponse.isOk()) {
-                                User user = userInfoResponse.getUser();
-                                members.add(user);
-                            }
-                        } catch (IOException | SlackApiException e) {
-                            System.out.println("Error occurred while fetching user info: " + e.getMessage());
+                for (int i = 0; i < memberIds.length(); i++) {
+                    String memberId = memberIds.getString(i);
+                    UsersInfoResponse userInfoResponse;
+                    try {
+                        userInfoResponse = slack.methods(slackToken)
+                                .usersInfo(UsersInfoRequest.builder().user(memberId).build());
+                        if (userInfoResponse.isOk()) {
+                            User user = userInfoResponse.getUser();
+                            members.add(user);
                         }
-                    }
-
-                    System.out.println("Users in Channel:");
-
-                    for (User user : members) {
-                        System.out.println("  - " + user.getName() + " (ID: " + user.getId() + ")");
+                    } catch (IOException | SlackApiException e) {
+                        System.out.println("Error occurred while fetching user info: " + e.getMessage());
                     }
                 }
 
-                System.out.println();
+                System.out.println("Users in Channel:");
+
+                for (User user : members) {
+                    System.out.println("  - " + user.getName() + " (ID: " + user.getId() + ")");
+                }
             }
+
+            System.out.println();
         }
     }
 

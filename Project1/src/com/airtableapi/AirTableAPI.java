@@ -87,7 +87,7 @@ public class AirTableAPI {
         }
     }
 
-    public static JSONObject createRecord(String tableName, JSONObject fields) throws IOException {
+    public static void createRecord(String tableName, JSONObject fields) throws IOException {
         String url = AIRTABLE_API_URL + baseID + "/" + tableName;
         try( CloseableHttpClient httpClient = HttpClients.createDefault()){
             HttpPost httpPost = new HttpPost(url);
@@ -106,7 +106,7 @@ public class AirTableAPI {
             HttpEntity responseEntity = response.getEntity();
             String responseString = EntityUtils.toString(responseEntity, "UTF-8");
 
-            return new JSONObject(responseString);
+            new JSONObject(responseString);
         }
     }
 
@@ -126,7 +126,7 @@ public class AirTableAPI {
         }
     }
 
-    public static JSONObject updateRecord(String tableName, String recordId, JSONObject fields) throws IOException {
+    public static void updateRecord(String tableName, String recordId, JSONObject fields) throws IOException {
         String url = AIRTABLE_API_URL + baseID + "/" + tableName + "/" + recordId;
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPatch httpPatch = new HttpPatch(url);
@@ -145,7 +145,7 @@ public class AirTableAPI {
             HttpEntity responseEntity = response.getEntity();
             String responseString = EntityUtils.toString(responseEntity, "UTF-8");
 
-            return new JSONObject(responseString);
+            new JSONObject(responseString);
         }
     }
 
